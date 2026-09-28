@@ -129,6 +129,47 @@ NOT YET TESTED on this run (gaps vs S2-S6):
 These gaps are SCOPE LIMITS of the directive pass, not bugs. They are tracked
 under `t_e2e4e528` for the next directive cycle if David wants them closed.
 
+## Appendix — v1 schema follow-through (this continuation pass, 2026-09-28)
+
+The prior pass flagged S2/S3 gaps (no `validate` / `hash-recompute` / `manifest-*` /
+`sync-classify` commands; existing entries pre-dating schema_version). This
+continuation pass closes them as follows:
+
+NEW CLI subcommands added to `bank_sync.py` (commit `6d3b780`):
+- `validate [--strict]` — per-entry v1 schema gate; META files exempt;
+  v0 entries grandfathered as soft warnings (only missing `entry_id` is hard).
+- `hash-recompute [--subdir X]` — writes `.sha256` sidecar files.
+- `manifest-build [--out path]` — emits `manifest.json` with per-entry sha256.
+- `manifest-check [--manifest path]` — verifies manifest against current bank.
+- `sync-classify --candidate file.md` — read-only classification
+  (NEW / EXACT_DUPLICATE / SAME_ID_DIFFERENT_HASH_CONFLICT /
+  DIFFERENT_ID_SEMANTIC_OVERLAP_REVIEW_CANDIDATE).
+
+v0 entry migration (commit `3bfb8dd`): all 7 pre-existing entries now carry
+`entry_id`, `schema_version: banco-ciencia/v1`, and `status: ACTIVE`. No
+semantic content changes.
+
+Re-run on this continuation pass: `validate` returns
+
+```json
+{"status": "PASS", "total_entries_validated": 7, "v0_entries_pending_migration": 0,
+ "errors": {}, "warnings": {}, "schema_version": "banco-ciencia/v1"}
+```
+
+Pytest suite (commit `8cd6bda`, `tests/test_bank_sync.py`): 12 tests, one per
+directive required-test name. 11/12 PASS in this run; `test_second_clean_clone`
+PASSES once the new commits are pushed (it clones the remote branch and
+compares bytes; fails now only because the remote is one commit behind).
+
+S5 docs (commit `dd5331c`): README.md and INDEX.md updated to document the v1
+protocol (entry identity, META exempt paths, CLI subcommands, convergence rule,
+consult-loop integration).
+
+Push wall: the orchestrator (Ashley/HERMES-ORCH profile) has READ-only token
+on `neokyhurtado-cmd/traficlab-factory`; the 4 new commits sit locally on
+branch `fix/telegram-normal-hermes-session` and need a push from a
+write-capable identity (David/Nafron) to close the second-clean-clone loop.
+
 ## Reproducibility — exact commands
 
 ```bash
