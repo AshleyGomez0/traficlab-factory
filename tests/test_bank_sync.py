@@ -30,6 +30,7 @@ import shutil
 import subprocess
 import sys
 import tempfile
+import time
 from pathlib import Path
 
 import pytest
@@ -262,8 +263,9 @@ def test_second_clean_clone(tmp_bank: Path) -> None:
     The clone uses --depth 1 (fast), --single-branch, and the SAME remote URL
     the directive specifies.
     """
-    with tempfile.TemporaryDirectory(prefix="second_clone_") as raw:
-        second = Path(raw) / "bank"
+    raw = tempfile.mkdtemp(prefix="second_clone_")
+    second = Path(raw) / "bank"
+    try:
         p = subprocess.run(
             ["git", "clone", "--branch", REMOTE_BRANCH, "--single-branch", "--depth", "1",
              REMOTE_URL, str(second)],
@@ -279,6 +281,16 @@ def test_second_clean_clone(tmp_bank: Path) -> None:
         src_files = {p.name: _file_hash(p) for p in tmp_bank.rglob("*.md")}
         diffs = [n for n in src_files if n in sc_files and src_files[n] != sc_files[n]]
         assert not diffs, f"clone diverged from source: {diffs[:5]}"
+    finally:
+        # On Windows, git objects may still be locked briefly; retry cleanup.
+        for _ in range(3):
+            try:
+                shutil.rmtree(raw, ignore_errors=False)
+                break
+            except (PermissionError, OSError):
+                time.sleep(0.5)
+        else:
+            shutil.rmtree(raw, ignore_errors=True)
 
 
 # ---------------------------------------------------------------------------
