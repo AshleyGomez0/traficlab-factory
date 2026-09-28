@@ -210,3 +210,7 @@ Outputs at:
 - PR #24: MERGEABLE, status checks both SUCCESS as of 2026-09-12T20:28:27Z
 - Local worktree: `C:/hermes-server/factory/kanban/workspaces/t_e2e4e528/test_clone/bank_clone` HEAD == remote HEAD
 - Kanban: `t_e2e4e528` assignee `orchestrator`, directive `CONTINUE`
+- Cross-reference PR (opened from fork due to read-only token on upstream):
+  https://github.com/neokyhurtado-cmd/traficlab-factory/pull/62
+  (base = `fix/telegram-normal-hermes-session`, head = `c4f729c`,
+  12 files changed, +1097 / -18)
